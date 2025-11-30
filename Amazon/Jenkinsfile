@@ -1,11 +1,16 @@
 pipeline {
-    agent any
+    agent { label 'built-in' }
+
+    environment {
+        git_branch = 'main'
+        git_url = 'https://github.com/pavankumarch1219/Amazon.git'
+    }
 
     stages {
 
-        stage('Clone Project') {
+        stage('Clone') {
             steps {
-                git branch: 'main', url: 'https://github.com/pavankumarch1219/Amazon.git'
+                git branch: "${git_branch}", url: "${git_url}"
             }
         }
 
@@ -33,7 +38,15 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Package') {
+            steps {
+                dir('Amazon') {
+                    sh 'mvn package'
+                }
+            }
+        }
+
+        stage('Install') {
             steps {
                 dir('Amazon') {
                     sh 'mvn clean install'
@@ -43,29 +56,22 @@ pipeline {
     }
 
     post {
+
         success {
-            emailext(
-                to: 'pavan.abc.reports@gmail.com',
-                subject: "SUCCESS: AMAZON Job",
-                body: """<b>🎉 Build Successful!</b><br><br>
-                         <b>Job Name:</b> AMAZON<br>
-                         <b>Status:</b> SUCCESS ✔️<br>
-                         <b>Build URL:</b> ${env.BUILD_URL}<br><br>
-                         Regards,<br>
-                         Jenkins Pipeline """
-            )
+            echo "Build completed successfully!"
+
+            mail to: 'maruthi.bg6@gmail.com,maruthi.abc.reports@gmail.com,pavankumarch29@gmail.com,pavan.abc.reports@gmail.com',
+                 subject: "BUILD SUCCESS: ${env.JOB_NAME}",
+                 body: "The Jenkins job '${env.JOB_NAME}' completed SUCCESSFULLY.\n\nConsole output:\n${env.BUILD_URL}"
         }
+
         failure {
-            emailext(
-                to: 'pavan.abc.reports@gmail.com',
-                subject: "FAILED: AMAZON Job",
-                body: """<b>❌ Build Failed!</b><br><br>
-                         <b>Job Name:</b> AMAZON<br>
-                         <b>Status:</b> FAILURE 🚨<br>
-                         <b>Check Logs here:</b> ${env.BUILD_URL}<br><br>
-                         Regards,<br>
-                         Jenkins Pipeline """
-            )
+            echo "Build failed."
+
+            mail to: 'maruthi.bg6@gmail.com,maruthi.abc.reports@gmail.com,pavankumarch29@gmail.com,pavan.abc.reports@gmail.com',
+                 subject: "BUILD FAILURE: ${env.JOB_NAME}",
+                 body: "The Jenkins job '${env.JOB_NAME}' has FAILED.\n\nCheck console output:\n${env.BUILD_URL}"
         }
-    }
-}
+
+        unstable {
+            echo "Build is unsta
