@@ -3,13 +3,13 @@ pipeline {
 
     stages {
 
-        stage('clone project') {
+        stage('Clone Project') {
             steps {
                 git branch: 'main', url: 'https://github.com/pavankumarch1219/Amazon.git'
             }
         }
 
-        stage('clean') {
+        stage('Clean') {
             steps {
                 dir('Amazon') {
                     sh 'mvn clean'
@@ -17,7 +17,7 @@ pipeline {
             }
         }
 
-        stage('compile') {
+        stage('Compile') {
             steps {
                 dir('Amazon') {
                     sh 'mvn compile'
@@ -25,7 +25,7 @@ pipeline {
             }
         }
 
-        stage('test') {
+        stage('Test') {
             steps {
                 dir('Amazon') {
                     sh 'mvn test'
@@ -33,12 +33,39 @@ pipeline {
             }
         }
 
-        stage('build') {
+        stage('Build') {
             steps {
                 dir('Amazon') {
                     sh 'mvn clean install'
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            emailext(
+                to: 'pavan.abc.reports@gmail.com',
+                subject: "SUCCESS: AMAZON Job",
+                body: """<b>🎉 Build Successful!</b><br><br>
+                         <b>Job Name:</b> AMAZON<br>
+                         <b>Status:</b> SUCCESS ✔️<br>
+                         <b>Build URL:</b> ${env.BUILD_URL}<br><br>
+                         Regards,<br>
+                         Jenkins Pipeline """
+            )
+        }
+        failure {
+            emailext(
+                to: 'pavan.abc.reports@gmail.com',
+                subject: "FAILED: AMAZON Job",
+                body: """<b>❌ Build Failed!</b><br><br>
+                         <b>Job Name:</b> AMAZON<br>
+                         <b>Status:</b> FAILURE 🚨<br>
+                         <b>Check Logs here:</b> ${env.BUILD_URL}<br><br>
+                         Regards,<br>
+                         Jenkins Pipeline """
+            )
         }
     }
 }
