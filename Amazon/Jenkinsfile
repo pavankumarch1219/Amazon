@@ -35,10 +35,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Amazon Web Application Deployed Successfully"
+            echo "Amazon Web Application Deployed Successfully"
         }
         failure {
-            echo "❌ Build or Deployment Failed"
+            echo "Deployment Failed"
         }
     }
 }
