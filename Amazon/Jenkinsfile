@@ -1,60 +1,44 @@
 pipeline {
-    
-    agent { label 'built-in' }
+    agent any
 
     environment {
-        git_branch = 'main'
-        git_url = 'https://github.com/pavankumarch1219/Amazon.git'
+        GIT_BRANCH = 'main'
+        GIT_URL    = 'https://github.com/maruthibg1998/Amazon.git'
+        TOMCAT_WEBAPPS = '/opt/tomcat/webapps'
     }
 
     stages {
 
         stage('Clone') {
             steps {
-                git branch: "${git_branch}", url: "${git_url}"
+                git branch: "${GIT_BRANCH}", url: "${GIT_URL}"
             }
         }
 
-        stage('Clean') {
+        stage('Build WAR') {
             steps {
                 dir('Amazon') {
-                    sh 'mvn clean'
+                    sh 'mvn clean package'
                 }
             }
         }
 
-        stage('Compile') {
+        stage('Deploy to Tomcat') {
             steps {
-                dir('Amazon') {
-                    sh 'mvn compile'
-                }
-            }
-        }
-
-        stage('Test') {
-            steps {
-                dir('Amazon') {
-                    sh 'mvn test'
-                }
-            }
-        }
-
-        stage('Package') {
-            steps {
-                dir('Amazon') {
-                    sh 'mvn package'
-                }
-            }
-        }
-
-        stage('Install') {
-            steps {
-                dir('Amazon') {
-                    sh 'mvn clean install'
-                }
+                sh '''
+                echo "Deploying WAR to Tomcat..."
+                cp Amazon/Amazon-Web/target/*.war ${TOMCAT_WEBAPPS}/
+                '''
             }
         }
     }
 
-
-} 
+    post {
+        success {
+            echo "Build & Deployment Successful"
+        }
+        failure {
+            echo "Deployment Failed"
+        }
+    }
+}
